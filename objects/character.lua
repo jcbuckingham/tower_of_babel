@@ -17,34 +17,54 @@ function Character:initialize(x, y, speed, animationSetNum)
    self.currentAnimation = walkAnimation.right
 end
 
--- function Character:setupAnimation()
---    self.walk = self:setWalkAnimation()
---    self.currentAnimation = self.animationSet.walkRight
--- end
-
 function Character:move()
-   if love.keyboard.isDown("right") or love.keyboard.isDown("d") then
-      self.currentAnimation = self.walk.right
-      if self.x < _G.w - self.width*1.5 then
-         self.x = self.x + self.speed
+   upPressed = (love.keyboard.isDown("up") or love.keyboard.isDown("w"))
+   downPressed = (love.keyboard.isDown("down") or love.keyboard.isDown("s"))
+   leftPressed = (love.keyboard.isDown("left") or love.keyboard.isDown("a"))
+   rightPressed = (love.keyboard.isDown("right") or love.keyboard.isDown("d"))
+
+   verticalPressed = upPressed or downPressed
+   horizontalPressed = rightPressed or leftPressed
+
+   if horizontalPressed then
+      if verticalPressed then
+         speed = self.speed/1.5
+      else
+         speed = self.speed
       end
-    elseif love.keyboard.isDown("left") or love.keyboard.isDown("a") then
-      self.currentAnimation = self.walk.left   
-      if self.x > 0 then
-            self.x = self.x - self.speed
+
+      if rightPressed then
+         self.currentAnimation = self.walk.right
+         if self.x < _G.w - self.width*1.5 then
+            self.x = self.x + speed
          end
-    end
-    if love.keyboard.isDown("up") or love.keyboard.isDown("w") then
-      self.currentAnimation = self.walk.up
-      if self.y > 5 then
-         self.y = self.y - self.speed
+      elseif leftPressed then
+         self.currentAnimation = self.walk.left   
+         if self.x > 0 then
+               self.x = self.x - speed
+            end
       end
-    elseif love.keyboard.isDown("down") or love.keyboard.isDown("s") then
-      self.currentAnimation = self.walk.down
-      if self.y < _G.h - 55 then
-         self.y = self.y + self.speed
+   end
+
+   if verticalPressed then
+      if horizontalPressed then
+         speed = self.speed/1.5
+      else
+         speed = self.speed
       end
-    end
+
+      if upPressed then
+         self.currentAnimation = self.walk.up
+         if self.y > 5 then
+            self.y = self.y - speed
+         end
+      elseif downPressed then
+         self.currentAnimation = self.walk.down
+         if self.y < _G.h - 55 then
+            self.y = self.y + speed
+         end
+      end
+   end
 end
 
 function Character:getAnimationSet(set)
