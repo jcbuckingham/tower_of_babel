@@ -17,7 +17,10 @@ function love.load()
 	_G.w = lg.getWidth()
 	_G.h = lg.getHeight()
 
-	_G.character = Character:new(10, 10, 3, 1)
+	_G.character = Character:new(10, 10, 2, 11)
+	_G.npc1 = Character:new(80, 350, 1.5, 7)
+	_G.npc2 = Character:new(w-160, 350, 1.5, 8)
+	npc2:setCurrentAnimation("walkLeft")
 
 	_G.text = ""
 end
@@ -27,6 +30,8 @@ function love.update(dt)
 	character:move()
 
 	character.currentAnimation:update(dt)
+	npc1.currentAnimation:update(dt)
+	npc2.currentAnimation:update(dt)
 
     if string.len(text) > 768 then
     	text = ""
@@ -35,6 +40,9 @@ end
 
 function love.draw()
 	gameMap:draw()
+
+	npc1.currentAnimation:draw(npc1:getSpriteSheet(), npc1.x, npc1.y, nil, 1.6)
+	npc2.currentAnimation:draw(npc2:getSpriteSheet(), npc2.x, npc2.y, nil, 1.6)
 
 	character.currentAnimation:draw(character:getSpriteSheet(), character.x, character.y, nil, 1.6)
 

@@ -1,19 +1,20 @@
 local class = require 'libraries/middleclass'
-SET_1_SPRITESHEET = "assets/sprites/re_side_character_sprites_v1_0_by_doubleleggy_d2hz61y.png"
+SET_1_SPRITESHEET = "assets/sprites/re_cv_sprites_v1_0_by_doubleleggy_d2hwj7w.png"
+SET_2_SPRITESHEET = "assets/sprites/re2_sprites_v1_1_by_doubleleggy_d2qb57d.png"
 
 Character = class('Character')
 
 function Character:initialize(x, y, speed, animationSetNum)
-   animSet = Character:getAnimationSet(animationSetNum)
-   walkAnim = Character:createWalkAnimation(animSet)
+   animationSet = Character:getAnimationSet(animationSetNum)
+   walkAnimation = Character:createWalkAnimation(animationSet)
    self.x = x
    self.y = y
    self.speed = speed
    self.width = 32
    self.height = 32
-   self.animationSet = animSet
-   self.walk = walkAnim
-   self.currentAnimation = walkAnim.right
+   self.animationSet = animationSet
+   self.walk = walkAnimation
+   self.currentAnimation = walkAnimation.right
 end
 
 -- function Character:setupAnimation()
@@ -47,18 +48,41 @@ function Character:move()
 end
 
 function Character:getAnimationSet(set)
-   if set == 1 then
-      spriteSheet=lg.newImage(SET_1_SPRITESHEET)
-      grid=anim8.newGrid(32, 32, spriteSheet:getWidth(), spriteSheet:getHeight())
-      return {
-         walkDown=anim8.newAnimation(grid('1-3', 1), 0.25),
-         walkUp=anim8.newAnimation(grid('1-3', 4), 0.25),
-         walkLeft=anim8.newAnimation(grid('1-3', 2), 0.25),
-         walkRight=anim8.newAnimation(grid('1-3', 3), 0.25),
-         spriteSheet=spriteSheet,
-         grid=grid,
-      }
+   if set < 8 then 
+      spriteSheet = SET_1_SPRITESHEET 
+   else 
+      spriteSheet = SET_2_SPRITESHEET 
    end
+   if set < 5 or (7 < set and set < 12) then
+      startRow = 1
+   else
+      startRow = 5
+   end
+
+   if set == 1 or set == 5 or set == 8 or set == 12 then
+      gridPosition = '1-3'
+      gridRepeat = 2
+   elseif set == 2 or set == 6 or set == 9 or set == 13 then
+      gridPosition = '4-6'
+      gridRepeat = 5
+   elseif set == 3 or set == 7 or set == 10 or set == 14 then
+      gridPosition = '7-9'
+      gridRepeat = 8
+   elseif set == 4 or set == 11 or set == 15 then
+      gridPosition = '10-12'
+      gridRepeat = 11
+   end
+
+   spriteSheet=lg.newImage(spriteSheet)
+   grid=anim8.newGrid(32, 32, spriteSheet:getWidth(), spriteSheet:getHeight())
+   return {
+      walkDown=anim8.newAnimation(grid(gridPosition, startRow, gridRepeat, startRow), 0.25),
+      walkLeft=anim8.newAnimation(grid(gridPosition, startRow+1, gridRepeat, startRow+1), 0.25),
+      walkRight=anim8.newAnimation(grid(gridPosition, startRow+2, gridRepeat, startRow+2), 0.25),
+      walkUp=anim8.newAnimation(grid(gridPosition, startRow+3, gridRepeat, startRow+3), 0.25),
+      spriteSheet=spriteSheet,
+      grid=grid,
+   }
 end
 
 function Character:getGrid()
@@ -80,12 +104,12 @@ end
 
 function Character:setCurrentAnimation(anim)
    if anim == "walkRight" then
-      self.currentAnimation = self.walk["right"]
+      self.currentAnimation = self.walk.right
    elseif anim == "walkLeft" then
-      self.currentAnimation = self.walk["left"]
+      self.currentAnimation = self.walk.left
    elseif anim == "walkUp" then
-      self.currentAnimation = self.walk["up"]
+      self.currentAnimation = self.walk.up
    elseif anim == "walkDown" then
-      self.currentAnimation = self.walk["down"]
+      self.currentAnimation = self.walk.down
    end
 end
