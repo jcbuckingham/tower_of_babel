@@ -1,0 +1,11 @@
+[
+    {
+        "type": "lua-local",
+        "request": "launch",
+        "name": "Debug Love",
+        "program": {
+            "command": "/Applications/love.app/Contents/MacOS/love ."
+        },
+        "args": [ "${workspaceFolder} "]
+    }
+]
