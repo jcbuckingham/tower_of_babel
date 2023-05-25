@@ -19,7 +19,6 @@ function love.load()
 end
 
 function love.update(dt)
-	game.world:update(dt)
 	game:updateCharacters(dt)
 
     if string.len(text) > 768 then
@@ -31,5 +30,10 @@ function love.draw()
 	game.map:draw()
 	game:drawCharacters()
 
-    -- love.graphics.print(text, 10, 10)
+	-- love.graphics.push("all")    
+	-- love.graphics.setColor(0, 0.2, 0.5)
+	-- shrub = game.level1Blocks.fountain
+	-- love.graphics.rectangle("line", shrub.x,shrub.y, shrub.height, shrub.width)
+	-- love.graphics.print(text, 10, 10)
+	-- love.graphics.pop()
 end

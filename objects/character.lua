@@ -4,6 +4,9 @@ SET_2_SPRITESHEET = "assets/sprites/re2_sprites_v1_1_by_doubleleggy_d2qb57d.png"
 
 Character = class('Character')
 
+Character.static.scale = 1.6
+Character.static.offset = 20
+
 function Character:initialize(x, y, speed, animationSetNum)
    animationSet = Character:getAnimationSet(animationSetNum)
    walkAnimation = Character:createWalkAnimation(animationSet)
@@ -64,6 +67,12 @@ function Character:move()
             self.y = self.y + speed
          end
       end
+   end
+   local actualX, actualY, collisions, len = game.world:move(self, self.x, self.y)
+   self.x, self.y = actualX, actualY
+
+   if len > 0 then
+      _G.text = text..'collided at '..tostring(actualX).." "..tostring(actualY).."\n"
    end
 end
 
