@@ -3,6 +3,6 @@ function love.conf(t)
 	t.version = "11.4"
 	t.console = true
 	t.window.title  = "Markets of Babel"
-	t.window.width = 1216
-	t.window.height = 704
+	t.window.width = 800
+	t.window.height = 500
 end

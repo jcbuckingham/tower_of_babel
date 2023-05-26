@@ -1,62 +1,42 @@
 local class = require 'libraries/middleclass'
 local sti = require "libraries/sti"
-local bump = require 'libraries/bump'
+local windfield = require "libraries/windfield"
+local camera = require "libraries/camera"
 require "objects/character"
 require "objects/block"
 
 Game = class('Game')
 
 function Game:initialize()
-    -- local world = love.physics.newWorld(0, 200, True)
-    -- world:setCallbacks(beginContact, endContact, preSolve, postSolve)
-
-    local world = bump.newWorld(32*Character.scale)
-    local mc = Game:initCharacter(20, 20, 2, 11)
-    local level1NPCs = {
+    local windfieldWorld = windfield.newWorld(0, 0)
+    local mc = Game:initCharacter(100, 100, 230, 1000)
+    local npcs = {
         george = Game:initCharacter(80, 350, 0, 7),
         frederico = Game:initCharacter(_G.w-160, 350, 0, 8)
     }
-    local level1Blocks = {
-        marketPlant = Block:new(535, 160, 96, 96),
-        fountain = Block:new(570, 0, 40, 26)
-    }
-    world:add(mc, mc.x, mc.y, mc.width, mc.height)
-    world:add(
-        level1NPCs.george, 
-        level1NPCs.george.x, 
-        level1NPCs.george.y-Character.offset, 
-        level1NPCs.george.width, 
-        level1NPCs.george.height*Character.scale
-    )
-    world:add(
-        level1NPCs.frederico, 
-        level1NPCs.frederico.x, 
-        level1NPCs.frederico.y-Character.offset, 
-        level1NPCs.frederico.width, 
-        level1NPCs.frederico.height*Character.scale
-    )
-    world:add(
-        level1Blocks.marketPlant,
-        level1Blocks.marketPlant.x, 
-        level1Blocks.marketPlant.y,
-        level1Blocks.marketPlant.width,
-        level1Blocks.marketPlant.height
-    )
-    world:add(
-        level1Blocks.fountain,
-        level1Blocks.fountain.x, 
-        level1Blocks.fountain.y,
-        level1Blocks.fountain.width,
-        level1Blocks.fountain.height
-    )
+    npcs.frederico:setCurrentAnimation("standLeft")
 
-    level1NPCs.frederico:setCurrentAnimation("walkLeft")
+    local map = sti("assets/maps/market_1.lua")
+    local walls  = {}
+	if map.layers["Walls"] then
+		for i, obj in pairs(map.layers["Walls"].objects) do
+			local wall = windfieldWorld:newRectangleCollider(obj.x, obj.y, obj.width, obj.height)
+			wall:setType("static")
+			table.insert(walls, wall)
+		end
+	end
+    local camera = camera()
+    local mapW = map.width * map.tilewidth
+	local mapH = map.height * map.tileheight
 
     self.mc = mc
-    self.level1NPCs = level1NPCs
-    self.level1Blocks = level1Blocks
-    self.map = sti("assets/maps/market_1.lua")
-    self.world = world
+    self.npcs = npcs
+    self.walls = walls
+    self.map = map
+    self.mapH = mapH
+    self.mapW = mapW
+    self.windfieldWorld = windfieldWorld
+    self.camera = camera
 end
 
 function Game:initCharacter(x, y, speed, characterNum)
@@ -64,16 +44,34 @@ function Game:initCharacter(x, y, speed, characterNum)
 end
 
 function Game:drawCharacters()
-    local george = self.level1NPCs.george
-    local frederico = self.level1NPCs.frederico
+    local george = self.npcs.george
+    local frederico = self.npcs.frederico
 	george.currentAnimation:draw(george:getSpriteSheet(), george.x, george.y, nil, Character.scale)
 	frederico.currentAnimation:draw(frederico:getSpriteSheet(), frederico.x, frederico.y, nil, Character.scale)
-	self.mc.currentAnimation:draw(game.mc:getSpriteSheet(), game.mc.x, game.mc.y, nil, Character.scale)
+	self.mc.currentAnimation:draw(game.mc:getSpriteSheet(), game.mc.x, game.mc.y, nil, Character.scale, nil, game.mc.width/2, game.mc.height/1.8)
 end
 
 function Game:updateCharacters(dt)
     game.mc:move()
 	game.mc.currentAnimation:update(dt)
-	game.level1NPCs.george.currentAnimation:update(dt)
-	game.level1NPCs.frederico.currentAnimation:update(dt)
+	game.npcs.george.currentAnimation:update(dt)
+	game.npcs.frederico.currentAnimation:update(dt)
+end
+
+function Game:updateCamera()
+    self.camera:lookAt(self.mc.x, self.mc.y)
+
+	if self.camera.x < w/2 then
+		self.camera.x = w/2
+	end
+	if self.camera.y < h/2 then
+		self.camera.y = h/2
+	end
+
+	if self.camera.x > (self.mapW - w/2) then
+		self.camera.x = (self.mapW - w/2)
+	end
+	if self.camera.y > (self.mapH - h/2) then
+		self.camera.y = (self.mapH - h/2)
+	end
 end

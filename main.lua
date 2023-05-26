@@ -10,7 +10,6 @@ function love.load()
 	--[[ Globals --]]
 	_G.lg = love.graphics
 	lg.setDefaultFilter("nearest", "nearest")
-	-- _G.gameMap = sti("assets/maps/market_1.lua")
 	_G.w = lg.getWidth()
 	_G.h = lg.getHeight()
 	_G.text = ""
@@ -20,6 +19,8 @@ end
 
 function love.update(dt)
 	game:updateCharacters(dt)
+	game.windfieldWorld:update(dt)
+	game:updateCamera()
 
     if string.len(text) > 768 then
     	text = ""
@@ -27,13 +28,16 @@ function love.update(dt)
 end
 
 function love.draw()
-	game.map:draw()
-	game:drawCharacters()
+	game.camera:attach()
+		game.map:drawLayer(game.map.layers["Background"])
+		game.map:drawLayer(game.map.layers["Ground Tiles"])
+		game:drawCharacters()
+		game.map:drawLayer(game.map.layers["Objects"])
+		-- game.windfieldWorld:draw()
 
-	-- love.graphics.push("all")    
-	-- love.graphics.setColor(0, 0.2, 0.5)
-	-- shrub = game.level1Blocks.fountain
-	-- love.graphics.rectangle("line", shrub.x,shrub.y, shrub.height, shrub.width)
-	-- love.graphics.print(text, 10, 10)
-	-- love.graphics.pop()
+		-- love.graphics.push("all")    
+		-- love.graphics.setColor(0, 0.2, 0.5)
+		-- love.graphics.print(text, 10, 10)
+		-- love.graphics.pop()
+	game.camera:detach()
 end
