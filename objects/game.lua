@@ -9,14 +9,14 @@ Game = class('Game')
 
 function Game:initialize()
     local windfieldWorld = windfield.newWorld(0, 0)
-    local mc = Game:initCharacter(100, 100, 230, 1000)
+    
     local npcs = {
         george = Game:initCharacter(80, 350, 0, 7),
         frederico = Game:initCharacter(_G.w-160, 350, 0, 8)
     }
     npcs.frederico:setCurrentAnimation("standLeft")
 
-    local map = sti("assets/maps/market_1.lua")
+    local map = sti("assets/maps/market_2.lua")
     local walls  = {}
 	if map.layers["Walls"] then
 		for i, obj in pairs(map.layers["Walls"].objects) do
@@ -28,6 +28,7 @@ function Game:initialize()
     local camera = camera()
     local mapW = map.width * map.tilewidth
 	local mapH = map.height * map.tileheight
+    local mc = Game:initCharacter(100, mapH*2/3, 230, 1000)
 
     self.mc = mc
     self.npcs = npcs
