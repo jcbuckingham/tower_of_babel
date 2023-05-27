@@ -8,27 +8,40 @@ require "objects/block"
 Game = class('Game')
 
 function Game:initialize()
+    local camera = camera()
     local windfieldWorld = windfield.newWorld(0, 0)
-    
-    local npcs = {
-        george = Game:initCharacter(80, 350, 0, 7),
-        frederico = Game:initCharacter(_G.w-160, 350, 0, 8)
-    }
-    npcs.frederico:setCurrentAnimation("standLeft")
-
     local map = sti("assets/maps/market_2.lua")
+    local mapW = map.width * map.tilewidth
+	local mapH = map.height * map.tileheight
+    local mc = Game:initCharacter(1200, mapH*2/3, 30, 50, 100000, "Senlin")
+
     local walls  = {}
+    local wall = nil
 	if map.layers["Walls"] then
 		for i, obj in pairs(map.layers["Walls"].objects) do
-			local wall = windfieldWorld:newRectangleCollider(obj.x, obj.y, obj.width, obj.height)
+			wall = windfieldWorld:newRectangleCollider(obj.x, obj.y, obj.width, obj.height)
 			wall:setType("static")
 			table.insert(walls, wall)
 		end
 	end
-    local camera = camera()
-    local mapW = map.width * map.tilewidth
-	local mapH = map.height * map.tileheight
-    local mc = Game:initCharacter(100, mapH*2/3, 230, 1000)
+
+    local npcs = {}
+    local npcData = nil
+    local npc = nil
+    local npcCollider = nil
+    if map.layers["NPCs"] then
+		for i, obj in pairs(map.layers["NPCs"].objects) do
+
+            npcData = Character.npcData[obj.id]
+            npc = Game:initCharacter(obj.x, obj.y, 30, 50, npcData.animationSetNum, npcData.name)
+            npc.currentAnimationDirection = npcData.animationDirection
+            npc.currentAnimation = npc:getStandAnimation()
+            npc.currentAnimationType = "stand"
+            npcCollider = windfieldWorld:newRectangleCollider(obj.x - npc.width/2, obj.y - npc.height/2, npc.width, npc.height)
+            npcCollider:setType("static")
+            table.insert(npcs, npc)
+		end
+	end
 
     self.mc = mc
     self.npcs = npcs
@@ -40,23 +53,43 @@ function Game:initialize()
     self.camera = camera
 end
 
-function Game:initCharacter(x, y, speed, characterNum)
-    return Character:new(x, y, speed, characterNum)
+function Game:initCharacter(x, y, width, height, characterNum, name)
+    return Character:new(x, y, width, height, characterNum, name)
 end
 
 function Game:drawCharacters()
-    local george = self.npcs.george
-    local frederico = self.npcs.frederico
-	george.currentAnimation:draw(george:getSpriteSheet(), george.x, george.y, nil, Character.scale)
-	frederico.currentAnimation:draw(frederico:getSpriteSheet(), frederico.x, frederico.y, nil, Character.scale)
-	self.mc.currentAnimation:draw(game.mc:getSpriteSheet(), game.mc.x, game.mc.y, nil, Character.scale, nil, game.mc.width/2, game.mc.height/1.8)
+    for i, npc in pairs(self.npcs) do
+        npc.currentAnimation:draw(
+            npc:getSpriteSheet(), 
+            npc.x - npc.width*0.75, 
+            npc.y - npc.height, 
+            nil, 
+            1
+        )
+        love.graphics.push("all")    
+		love.graphics.setColor(0, 0, 0)
+        label = "name:\n"..npc.name.."\ndir:\n"..npc.currentAnimationDirection.."\ntype:\n"..npc.currentAnimationType.."\nset:\n"..tostring(npc.animationSetNumber)
+        love.graphics.print(label, npc.x, npc.y)
+        love.graphics.pop()
+    end
+	self.mc.currentAnimation:draw(
+        self.mc:getSpriteSheet(), 
+        self.mc.x, 
+        self.mc.y, 
+        nil, 
+        1.2, 
+        nil, 
+        self.mc.width/2, 
+        self.mc.height/1.8
+    )
 end
 
 function Game:updateCharacters(dt)
-    game.mc:move()
-	game.mc.currentAnimation:update(dt)
-	game.npcs.george.currentAnimation:update(dt)
-	game.npcs.frederico.currentAnimation:update(dt)
+    for i, npc in pairs(self.npcs) do
+        npc.currentAnimation:update(dt)
+    end
+    self.mc:move()
+	self.mc.currentAnimation:update(dt)
 end
 
 function Game:updateCamera()

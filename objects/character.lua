@@ -1,29 +1,128 @@
 local class = require 'libraries/middleclass'
-SET_1_SPRITESHEET = "assets/sprites/re_cv_sprites_v1_0_by_doubleleggy_d2hwj7w.png"
-SET_2_SPRITESHEET = "assets/sprites/re2_sprites_v1_1_by_doubleleggy_d2qb57d.png"
+SET_1_SPRITESHEET = "assets/sprites/villager-females.png"
+SET_2_SPRITESHEET = "assets/sprites/villager-males_1.png"
+SET_3_SPRITESHEET = "assets/sprites/armored-npcs.png"
+SET_4_SPRITESHEET = "assets/sprites/male-leather-armor-set_1.png"
+
 MC_SPRITESHEET = "assets/sprites/senlin.png"
 
 Character = class('Character')
 
 Character.static.scale = 1.6
 Character.static.offset = 23
+Character.static.speed = 250
+Character.static.npcData = {
+   [114]={
+      animationDirection = "right",
+      animationSetNum = 1,
+      name = "Baker"
+   },
+   [115]={
+      animationDirection = "down",
+      animationSetNum = 9,
+      name = "Florist"
+   },
+   [117]={
+      animationDirection = "right",
+      animationSetNum = 10,
+      name = "Market Stand 1"
+   },
+   [118]={
+      animationDirection = "up",
+      animationSetNum = 2,
+      name = "Market Stand 2"
+   },
+   [119]={
+      animationDirection = "up",
+      animationSetNum = 7,
+      name = "Food Cart"
+   },
+   [120]={
+      animationDirection = "down",
+      animationSetNum = 3,
+      name = "Grocer"
+   },
+   [121]={
+      animationDirection = "left",
+      animationSetNum = 8,
+      name = "Launderer"
+   },
+   [122]={
+      animationDirection = "right",
+      animationSetNum = 14,
+      name = "Fountain Person 1"
+   },
+   [123]={
+      animationDirection = "left",
+      animationSetNum = 11,
+      name = "Fountain Person 2"
+   },
+   [125]={
+      animationDirection = "left",
+      animationSetNum = 6,
+      name = "Market Stand 3"
+   },
+   [126]={
+      animationDirection = "up",
+      animationSetNum = 5,
+      name = "Market Stand 4"
+   },
+   [127]={
+      animationDirection = "left",
+      animationSetNum = 7,
+      name = "Market Stand 5"
+   },
+   [128]={
+      animationDirection = "down",
+      animationSetNum = 13,
+      name = "Peddler"
+   },
+   [129]={
+      animationDirection = "right",
+      animationSetNum = 16,
+      name = "Shopper 1"
+   },
+   [132]={
+      animationDirection = "left",
+      animationSetNum = 9,
+      name = "Shopper 2"
+   },
+   [133]={
+      animationDirection = "down",
+      animationSetNum = 4,
+      name = "Innkeeper"
+   },
+   [134]={
+      animationDirection = "up",
+      animationSetNum = 25,
+      name = "Guard 1"
+   },
+   [135]={
+      animationDirection = "down",
+      animationSetNum = 25,
+      name = "Guard 2"
+   }
+}
 
-function Character:initialize(x, y, speed, animationSetNum)
-   animationSet = Character:getAnimationSet(animationSetNum)
+function Character:initialize(x, y, width, height, animationSetNumber, name)
+   animationSet = Character:getAnimationSet(animationSetNumber)
    walkAnimation = Character:createWalkAnimation(animationSet)
    standAnimation = Character:createStandAnimation(animationSet)
    self.x = x
    self.y = y
-   self.speed = speed
-   self.width = 30
-   self.height = 50
+   self.speed = Character.speed
+   self.width = width
+   self.height = height
    self.animationSet = animationSet
    self.walk = walkAnimation
    self.stand = standAnimation
    self.currentAnimation = walkAnimation.right
-   self.currentAnimationType = "walk"
+   self.currentAnimationType = "stand"
    self.currentAnimationDirection = "right"
    self.collider = nil
+   self.is_mc = animationSetNum == 100000
+   self.name = name
+   self.animationSetNumber = animationSetNumber
 end
 
 function Character:getStandAnimation()
@@ -44,8 +143,8 @@ function Character:adjustDiagonalSpeed(horizontalPressed, horizontalPressed)
    end
 end
 
-function Character:prepareAnimation(direction)
-   self.currentAnimationType = "walk"
+function Character:prepareAnimation(direction, animationType)
+   self.currentAnimationType = animationType
    self.currentAnimation = self.walk[direction]
    self.currentAnimationDirection = direction
    return self.stand[direction]
@@ -67,12 +166,12 @@ function Character:move()
 
    if horizontalPressed then
       if rightPressed then
-         standAnimation = self:prepareAnimation("right")
+         standAnimation = self:prepareAnimation("right", "walk")
          if self.x < game.mapW - self.height then
             vx = speed
          end
       elseif leftPressed then
-         standAnimation = self:prepareAnimation("left")
+         standAnimation = self:prepareAnimation("left", "walk")
          if self.x > 0 then
                vx = speed * -1
             end
@@ -81,12 +180,12 @@ function Character:move()
 
    if verticalPressed then
       if upPressed then
-         standAnimation = self:prepareAnimation("up")
+         standAnimation = self:prepareAnimation("up", "walk")
          if self.y > 20 then
             vy = speed * -1
          end
       elseif downPressed then
-         standAnimation = self:prepareAnimation("down")
+         standAnimation = self:prepareAnimation("down", "walk")
          if self.y < game.mapH - self.height then
             vy = speed
          end
@@ -109,65 +208,64 @@ function Character:updateXY(vx, vy, standAnimation)
    self.y = self.collider:getY() - 28
 end
 
+function Character:mcAnimationSet()
+   local gridPosition = '2-9'
+   local startRow = 9
+   local gridRepeat = nil
+   local spriteSheet=lg.newImage(MC_SPRITESHEET)
+   local grid=anim8.newGrid(64, 64, spriteSheet:getWidth(), spriteSheet:getHeight())
+   local frameSpeed = 0.07
+
+   return {
+      walkDown=anim8.newAnimation(grid(gridPosition, startRow+2), frameSpeed),
+      walkLeft=anim8.newAnimation(grid(gridPosition, startRow+1), frameSpeed),
+      walkRight=anim8.newAnimation(grid(gridPosition, startRow+3), frameSpeed),
+      walkUp=anim8.newAnimation(grid(gridPosition, startRow), frameSpeed),
+      standDown=anim8.newAnimation(grid(1, startRow+2), 1),
+      standLeft=anim8.newAnimation(grid(1, startRow+1), 1),
+      standRight=anim8.newAnimation(grid(1, startRow+3), 1),
+      standUp=anim8.newAnimation(grid(1, startRow), 1),
+      spriteSheet=spriteSheet,
+      grid=grid,
+   }
+end
+
 function Character:getAnimationSet(set)
-   -- MC set is
-   if set == 1000 then
-      gridPosition = '2-9'
-      startRow = 9
-      gridRepeat = nil
-
-      spriteSheet=lg.newImage(MC_SPRITESHEET)
-      grid=anim8.newGrid(64, 64, spriteSheet:getWidth(), spriteSheet:getHeight())
-      return {
-         walkDown=anim8.newAnimation(grid(gridPosition, startRow+2), 0.07),
-         walkLeft=anim8.newAnimation(grid(gridPosition, startRow+1), 0.07),
-         walkRight=anim8.newAnimation(grid(gridPosition, startRow+3), 0.07),
-         walkUp=anim8.newAnimation(grid(gridPosition, startRow), 0.07),
-         standDown=anim8.newAnimation(grid(1, startRow+2), 1),
-         standLeft=anim8.newAnimation(grid(1, startRow+1), 1),
-         standRight=anim8.newAnimation(grid(1, startRow+3), 1),
-         standUp=anim8.newAnimation(grid(1, startRow), 1),
-         spriteSheet=spriteSheet,
-         grid=grid,
-      }
+   -- MC set is 100000
+   if set == 100000 then
+      return self:mcAnimationSet()
    end
 
-   if set < 8 then 
-      spriteSheet = SET_1_SPRITESHEET 
-   else 
-      spriteSheet = SET_2_SPRITESHEET 
-   end
-   if set < 5 or (7 < set and set < 12) then
-      startRow = 1
-   else
-      startRow = 5
-   end
+   local spriteSheetRef = getSpriteSheetForSet(set)
+   local startRow = getStartRow(set)
+   local modulo = set % 4
 
-   if set == 1 or set == 5 or set == 8 or set == 12 then
+   -- modulo 0 values
+   local gridPosition = '10-12'
+   local gridRepeat = 11
+
+   if modulo == 1 then
       gridPosition = '1-3'
       gridRepeat = 2
-   elseif set == 2 or set == 6 or set == 9 or set == 13 then
+   elseif modulo == 2 then
       gridPosition = '4-6'
       gridRepeat = 5
-   elseif set == 3 or set == 7 or set == 10 or set == 14 then
+   elseif modulo == 3 then
       gridPosition = '7-9'
       gridRepeat = 8
-   elseif set == 4 or set == 11 or set == 15 then
-      gridPosition = '10-12'
-      gridRepeat = 11
    end
 
-   spriteSheet=lg.newImage(spriteSheet)
-   grid=anim8.newGrid(32, 32, spriteSheet:getWidth(), spriteSheet:getHeight())
+   local spriteSheet=lg.newImage(spriteSheetRef)
+   local grid=anim8.newGrid(48, 72, spriteSheet:getWidth(), spriteSheet:getHeight())
    return {
+      standDown=anim8.newAnimation(grid(gridRepeat, startRow), 1),
+      standLeft=anim8.newAnimation(grid(gridRepeat, startRow+1), 1),
+      standRight=anim8.newAnimation(grid(gridRepeat, startRow+2), 1),
+      standUp=anim8.newAnimation(grid(gridRepeat, startRow+3), 1),
       walkDown=anim8.newAnimation(grid(gridPosition, startRow, gridRepeat, startRow), 0.25),
       walkLeft=anim8.newAnimation(grid(gridPosition, startRow+1, gridRepeat, startRow+1), 0.25),
       walkRight=anim8.newAnimation(grid(gridPosition, startRow+2, gridRepeat, startRow+2), 0.25),
       walkUp=anim8.newAnimation(grid(gridPosition, startRow+3, gridRepeat, startRow+3), 0.25),
-      standDown=anim8.newAnimation(grid(gridRepeat-1, startRow), 1),
-      standLeft=anim8.newAnimation(grid(gridRepeat-1, startRow+1), 1),
-      standRight=anim8.newAnimation(grid(gridRepeat-1, startRow+2), 1),
-      standUp=anim8.newAnimation(grid(gridRepeat-1, startRow+3), 1),
       spriteSheet=spriteSheet,
       grid=grid,
    }
@@ -217,4 +315,34 @@ function Character:setCurrentAnimation(anim)
    elseif anim == "standDown" then
       self.currentAnimation = self.stand.down
    end
+end
+
+function getStartRow(set)
+   local startRow = 1
+   if set > 24 then
+      return startRow
+   end
+   if set < 5 then
+      return startRow
+   end
+   if set > 8 and set < 13 then
+      return startRow
+   end
+   if set > 16 and set < 21 then
+      return startRow
+   end
+   return (startRow + 4)
+end
+
+function getSpriteSheetForSet(set)
+   if set < 9 then 
+      return SET_1_SPRITESHEET 
+   end
+   if set < 17 then
+      return SET_2_SPRITESHEET
+   end
+   if set < 25 then
+      return SET_3_SPRITESHEET
+   end
+   return SET_4_SPRITESHEET
 end
