@@ -101,6 +101,11 @@ Character.static.npcData = {
       animationDirection = "down",
       animationSetNum = 25,
       name = "Guard 2"
+   },
+   [139]={
+      animationDirection = "down",
+      animationSetNum = 15,
+      name = "Grocery Cart"
    }
 }
 
@@ -197,14 +202,14 @@ end
 
 function Character:updateXY(vx, vy, standAnimation)
    self.collider:setLinearVelocity(vx, vy)
-   local x = self.collider:getX() - 24
+   local x = self.collider:getX() - 20
    local y = self.collider:getY() - 28
    if x == self.x and y == self.y then
       self.currentAnimation = standAnimation
       self.currentAnimationType = "stand"
    end
 
-   self.x = self.collider:getX() - 24
+   self.x = self.collider:getX() - 20
    self.y = self.collider:getY() - 28
 end
 

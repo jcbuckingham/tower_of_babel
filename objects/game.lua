@@ -13,6 +13,9 @@ function Game:initialize()
     local map = sti("assets/maps/market_2.lua")
     local mapW = map.width * map.tilewidth
 	local mapH = map.height * map.tileheight
+    local inventoryMap = sti("assets/maps/inventory.lua", nil, 104, 62)
+    local inventoryMapW = inventoryMap.width * inventoryMap.tilewidth
+	local inventoryMapH = inventoryMap.height * inventoryMap.tileheight
     local mc = Game:initCharacter(1200, mapH*2/3, 30, 50, 100000, "Senlin")
 
     local walls  = {}
@@ -37,7 +40,7 @@ function Game:initialize()
             npc.currentAnimationDirection = npcData.animationDirection
             npc.currentAnimation = npc:getStandAnimation()
             npc.currentAnimationType = "stand"
-            npcCollider = windfieldWorld:newRectangleCollider(obj.x - npc.width/2, obj.y - npc.height/2, npc.width, npc.height)
+            npcCollider = windfieldWorld:newRectangleCollider(obj.x - npc.width/2, obj.y - npc.height*3/4, npc.width, npc.height)
             npcCollider:setType("static")
             table.insert(npcs, npc)
 		end
@@ -49,8 +52,14 @@ function Game:initialize()
     self.map = map
     self.mapH = mapH
     self.mapW = mapW
+    self.inventoryMap = inventoryMap
+    self.inventoryMapH = inventoryMapH
+    self.inventoryMapW = inventoryMapW
     self.windfieldWorld = windfieldWorld
     self.camera = camera
+    self.timeOfDay = "day"
+    self.showInventory = false
+
 end
 
 function Game:initCharacter(x, y, width, height, characterNum, name)
@@ -66,11 +75,11 @@ function Game:drawCharacters()
             nil, 
             1
         )
-        love.graphics.push("all")    
-		love.graphics.setColor(0, 0, 0)
-        label = "name:\n"..npc.name.."\ndir:\n"..npc.currentAnimationDirection.."\ntype:\n"..npc.currentAnimationType.."\nset:\n"..tostring(npc.animationSetNumber)
-        love.graphics.print(label, npc.x, npc.y)
-        love.graphics.pop()
+        -- love.graphics.push("all")    
+		-- love.graphics.setColor(0, 0, 0)
+        -- label = "name:\n"..npc.name.."\ndir:\n"..npc.currentAnimationDirection.."\ntype:\n"..npc.currentAnimationType.."\nset:\n"..tostring(npc.animationSetNumber)
+        -- love.graphics.print(label, npc.x, npc.y)
+        -- love.graphics.pop()
     end
 	self.mc.currentAnimation:draw(
         self.mc:getSpriteSheet(), 

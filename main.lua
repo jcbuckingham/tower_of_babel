@@ -36,11 +36,38 @@ function love.draw()
 		game:drawCharacters()
 		game.map:drawLayer(game.map.layers["Over MC 1"])
 		game.map:drawLayer(game.map.layers["Over MC 2"])
+
+		if game.timeOfDay == "night" then
+			game.map:drawLayer(game.map.layers["Night Filter"])
+			game.map:drawLayer(game.map.layers["Night Filter 2"])
+			game.map:drawLayer(game.map.layers["Lights On"])
+		end
 		-- game.windfieldWorld:draw()
 	game.camera:detach()
+
+	if game.showInventory then
+		game.map:drawLayer(game.map.layers["Obscure"])
+		game.inventoryMap:drawLayer(game.inventoryMap.layers["Background"])
+		game.inventoryMap:drawLayer(game.inventoryMap.layers["Tiles 1"])
+		game.inventoryMap:drawLayer(game.inventoryMap.layers["Tiles 2"])
+	end
 
 		-- love.graphics.push("all")    
 		-- love.graphics.setColor(0, 0.2, 0.5)
 		-- love.graphics.print(text, 10, 10)
 		-- love.graphics.pop()
 end
+
+function love.keypressed(key, scancode, isrepeat)
+	if key == "n" and game.timeOfDay == "day" then
+	   game.timeOfDay = "night"
+	elseif key == "n" then
+		game.timeOfDay = "day"
+	end
+
+	if key == "i" and game.showInventory == false then
+		game.showInventory = true
+	elseif key == "i" then
+		game.showInventory = false
+	end
+ end
