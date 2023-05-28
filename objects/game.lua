@@ -3,7 +3,7 @@ local sti = require "libraries/sti"
 local windfield = require "libraries/windfield"
 local camera = require "libraries/camera"
 require "objects/character"
-require "objects/block"
+require "objects/inventory"
 
 Game = class('Game')
 
@@ -13,9 +13,6 @@ function Game:initialize()
     local map = sti("assets/maps/market_2.lua")
     local mapW = map.width * map.tilewidth
 	local mapH = map.height * map.tileheight
-    local inventoryMap = sti("assets/maps/inventory.lua", nil, 104, 62)
-    local inventoryMapW = inventoryMap.width * inventoryMap.tilewidth
-	local inventoryMapH = inventoryMap.height * inventoryMap.tileheight
     local mc = Game:initCharacter(1200, mapH*2/3, 30, 50, 100000, "Senlin")
 
     local walls  = {}
@@ -52,14 +49,9 @@ function Game:initialize()
     self.map = map
     self.mapH = mapH
     self.mapW = mapW
-    self.inventoryMap = inventoryMap
-    self.inventoryMapH = inventoryMapH
-    self.inventoryMapW = inventoryMapW
     self.windfieldWorld = windfieldWorld
     self.camera = camera
     self.timeOfDay = "day"
-    self.showInventory = false
-
 end
 
 function Game:initCharacter(x, y, width, height, characterNum, name)

@@ -3,6 +3,7 @@ SET_1_SPRITESHEET = "assets/sprites/villager-females.png"
 SET_2_SPRITESHEET = "assets/sprites/villager-males_1.png"
 SET_3_SPRITESHEET = "assets/sprites/armored-npcs.png"
 SET_4_SPRITESHEET = "assets/sprites/male-leather-armor-set_1.png"
+ANIMAL_SPRITESHEET_1 = "assets/sprites/animal_sprites_1.png"
 
 MC_SPRITESHEET = "assets/sprites/senlin.png"
 
@@ -106,7 +107,17 @@ Character.static.npcData = {
       animationDirection = "down",
       animationSetNum = 15,
       name = "Grocery Cart"
-   }
+   },
+   [148]={
+      animationDirection = "down",
+      animationSetNum = 7,
+      name = "Grocer 2"
+   },
+   [149]={
+      animationDirection = "right",
+      animationSetNum = 100,
+      name = "Sheep"
+   },
 }
 
 function Character:initialize(x, y, width, height, animationSetNumber, name)
@@ -235,10 +246,35 @@ function Character:mcAnimationSet()
    }
 end
 
+function Character:animalAnimationSet()
+   local gridPosition = '1-3'
+   local startRow = 1
+   local gridRepeat = 2
+   local spriteSheet=lg.newImage(ANIMAL_SPRITESHEET_1)
+   local grid=anim8.newGrid(48, 48, spriteSheet:getWidth(), spriteSheet:getHeight())
+   local frameSpeed = 0.25
+
+   return {
+      walkDown=anim8.newAnimation(grid(gridPosition, startRow), frameSpeed),
+      walkLeft=anim8.newAnimation(grid(gridPosition, startRow+1), frameSpeed),
+      walkRight=anim8.newAnimation(grid(gridPosition, startRow+2), frameSpeed),
+      walkUp=anim8.newAnimation(grid(gridPosition, startRow+3), frameSpeed),
+      standDown=anim8.newAnimation(grid(1, startRow), 1),
+      standLeft=anim8.newAnimation(grid(1, startRow+1), 1),
+      standRight=anim8.newAnimation(grid(1, startRow+2), 1),
+      standUp=anim8.newAnimation(grid(1, startRow), 1),
+      spriteSheet=spriteSheet,
+      grid=grid,
+   }
+end
+
 function Character:getAnimationSet(set)
    -- MC set is 100000
    if set == 100000 then
       return self:mcAnimationSet()
+   end
+   if set == 100 then
+      return self.animalAnimationSet()
    end
 
    local spriteSheetRef = getSpriteSheetForSet(set)

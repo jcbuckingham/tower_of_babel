@@ -2,8 +2,10 @@ if os.getenv("LOCAL_LUA_DEBUGGER_VSCODE") == "1" then
     require("lldebugger").start()
 end
 
-require "objects/game"
 _G.anim8 = require "libraries/anim8"
+
+require "objects/game"
+require "objects/inventory"
 
 
 function love.load()
@@ -14,6 +16,7 @@ function love.load()
 	_G.h = lg.getHeight()
 	_G.text = ""
 
+	_G.inventory = Inventory:new()
 	_G.game = Game:new()
 end
 
@@ -47,9 +50,10 @@ function love.draw()
 
 	if game.showInventory then
 		game.map:drawLayer(game.map.layers["Obscure"])
-		game.inventoryMap:drawLayer(game.inventoryMap.layers["Background"])
-		game.inventoryMap:drawLayer(game.inventoryMap.layers["Tiles 1"])
-		game.inventoryMap:drawLayer(game.inventoryMap.layers["Tiles 2"])
+		inventory.inventoryMap:drawLayer(inventory.inventoryMap.layers["Background"])
+		inventory.inventoryMap:drawLayer(inventory.inventoryMap.layers["Tiles 1"])
+		inventory.inventoryMap:drawLayer(inventory.inventoryMap.layers["Tiles 2"])
+		inventory:drawInventory()
 	end
 
 		-- love.graphics.push("all")    
@@ -65,9 +69,23 @@ function love.keypressed(key, scancode, isrepeat)
 		game.timeOfDay = "day"
 	end
 
-	if key == "i" and game.showInventory == false then
-		game.showInventory = true
+	if key == "i" and inventory.showInventory == false then
+		inventory.showInventory = true
 	elseif key == "i" then
-		game.showInventory = false
+		inventory.showInventory = false
+	end
+
+	if key == "a" and not inventory.items[0] then
+		inventory.addNewItem(0, 1)
+	end
+
+	if key == "o" and inventory.items[0] and inventory.items[0].count == 10 then
+		inventory.items[0].count = 0
+	elseif key == "o" then
+		if inventory.items[0] then
+			inventory.items[0].count = inventory.items[0].count + 1
+		else
+			table.insert(inventory.items, Item:new(1,1))
+		end
 	end
  end
