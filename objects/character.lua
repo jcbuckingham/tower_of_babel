@@ -4,7 +4,6 @@ SET_2_SPRITESHEET = "assets/sprites/villager-males_1.png"
 SET_3_SPRITESHEET = "assets/sprites/armored-npcs.png"
 SET_4_SPRITESHEET = "assets/sprites/male-leather-armor-set_1.png"
 ANIMAL_SPRITESHEET_1 = "assets/sprites/animal_sprites_1.png"
-
 MC_SPRITESHEET = "assets/sprites/senlin.png"
 
 Character = class('Character')
@@ -12,6 +11,7 @@ Character = class('Character')
 Character.static.scale = 1.6
 Character.static.offset = 23
 Character.static.speed = 250
+-- TODO: Decouple NPCs from Character
 Character.static.npcData = {
    [114]={
       animationDirection = "right",
@@ -120,6 +120,7 @@ Character.static.npcData = {
    },
 }
 
+-- Inits character with starting animations
 function Character:initialize(x, y, width, height, animationSetNumber, name)
    animationSet = Character:getAnimationSet(animationSetNumber)
    walkAnimation = Character:createWalkAnimation(animationSet)
@@ -136,21 +137,19 @@ function Character:initialize(x, y, width, height, animationSetNumber, name)
    self.currentAnimationType = "stand"
    self.currentAnimationDirection = "right"
    self.collider = nil
-   self.is_mc = animationSetNum == 100000
+   self.is_mc = animationSetNum == 100000 -- TODO: remove this when I decouple NPCs from Character
    self.name = name
    self.animationSetNumber = animationSetNumber
 end
 
-function Character:getStandAnimation()
-   return self.stand[self.currentAnimationDirection]
-end
-
+-- Creates rectangle collider for character
 function Character:createCharacterCollider()
    local collider = game.windfieldWorld:newBSGRectangleCollider(self.x, self.y, self.width, self.height-10, 10)
    collider:setFixedRotation(true)
    self.collider = collider
 end
 
+-- Adjusts character movement speed so diagonal movement appears natural
 function Character:adjustDiagonalSpeed(horizontalPressed, horizontalPressed)
    if horizontalPressed and horizontalPressed then
       return self.speed/1.5
@@ -159,6 +158,7 @@ function Character:adjustDiagonalSpeed(horizontalPressed, horizontalPressed)
    end
 end
 
+-- Called when movement or standing is detected, to apply settings for animation type and direction.
 function Character:prepareAnimation(direction, animationType)
    self.currentAnimationType = animationType
    self.currentAnimation = self.walk[direction]
@@ -166,6 +166,8 @@ function Character:prepareAnimation(direction, animationType)
    return self.stand[direction]
 end
 
+-- Applies keyboard movement with 'wasd' or arrow keys by altering x/y coords and applying walking
+-- animation, or if x/y unchanged, applies standing animation.
 function Character:move()
    if not self.collider then self:createCharacterCollider() end
 
@@ -179,6 +181,8 @@ function Character:move()
    local vy = 0
    local standAnimation = self:getStandAnimation()
    local speed = self:adjustDiagonalSpeed(horizontalPressed, verticalPressed)
+
+   -- Diagonal movement start
 
    if horizontalPressed then
       if rightPressed then
@@ -194,6 +198,8 @@ function Character:move()
       end
    end
 
+   -- TODO: fix this bug: the following block overwrites the previous block every time,
+   -- but we want to be able to move L and R diagonals without up/down animations
    if verticalPressed then
       if upPressed then
          standAnimation = self:prepareAnimation("up", "walk")
@@ -208,22 +214,28 @@ function Character:move()
       end
    end
 
+   -- Diagonal movement end
+
    self:updateXY(vx, vy, standAnimation)
 end
 
+-- Helper function that updates XY and applies the standing animation if needed.
 function Character:updateXY(vx, vy, standAnimation)
    self.collider:setLinearVelocity(vx, vy)
+   -- offsets collider to make collisions appear natural
    local x = self.collider:getX() - 20
    local y = self.collider:getY() - 28
+
    if x == self.x and y == self.y then
       self.currentAnimation = standAnimation
       self.currentAnimationType = "stand"
    end
 
-   self.x = self.collider:getX() - 20
-   self.y = self.collider:getY() - 28
+   self.x = x
+   self.y = y
 end
 
+-- Returns an animation set for the main character, currently returned from Character:getAnimationSet method
 function Character:mcAnimationSet()
    local gridPosition = '2-9'
    local startRow = 9
@@ -246,6 +258,10 @@ function Character:mcAnimationSet()
    }
 end
 
+-- Returns an animal animation set, currently returned from Character:getAnimationSet method
+-- Note: there is currently only one animal in use, so when there are more, this will need to accept a set number
+-- and determine startRow, gridPosition, etc like the Character:getAnimationSet method instead of hard coding.
+-- TODO: Decouple NPCs from Character
 function Character:animalAnimationSet()
    local gridPosition = '1-3'
    local startRow = 1
@@ -268,8 +284,11 @@ function Character:animalAnimationSet()
    }
 end
 
+-- Returns an animation set for the character based on set number
+-- TODO: Decouple NPCs from Character
+-- There is some hacky coding to get around the MC not having an NPC set number
 function Character:getAnimationSet(set)
-   -- MC set is 100000
+   -- MC set is 100000 until NPC is decoupled from Character
    if set == 100000 then
       return self:mcAnimationSet()
    end
@@ -281,7 +300,7 @@ function Character:getAnimationSet(set)
    local startRow = getStartRow(set)
    local modulo = set % 4
 
-   -- modulo 0 values
+   -- These are modulo 0 values
    local gridPosition = '10-12'
    local gridRepeat = 11
 
@@ -312,14 +331,12 @@ function Character:getAnimationSet(set)
    }
 end
 
-function Character:getGrid()
-   return self.animationSet.grid
-end
-
+-- Gets spritesheet for the character
 function Character:getSpriteSheet()
    return self.animationSet.spriteSheet
 end
 
+-- Creates a walk animation set with four directions
 function Character:createWalkAnimation(animationSet)
    return {
       up=animationSet.walkUp, 
@@ -329,6 +346,12 @@ function Character:createWalkAnimation(animationSet)
    }
 end
 
+-- Returns stand animation in the correct direction
+function Character:getStandAnimation()
+   return self.stand[self.currentAnimationDirection]
+end
+
+-- Creates a stand animation set with four directions
 function Character:createStandAnimation(animationSet)
    return {
       up=animationSet.standUp, 
@@ -338,6 +361,8 @@ function Character:createStandAnimation(animationSet)
    }
 end
 
+-- Sets animation based on a string
+-- TODO: making a table for mapping would be more Lua-like
 function Character:setCurrentAnimation(anim)
    if anim == "walkRight" then
       self.currentAnimation = self.walk.right
@@ -358,11 +383,9 @@ function Character:setCurrentAnimation(anim)
    end
 end
 
+-- Determines first row to use in character spritesheet based on set number
 function getStartRow(set)
    local startRow = 1
-   if set > 24 then
-      return startRow
-   end
    if set < 5 then
       return startRow
    end
@@ -372,9 +395,13 @@ function getStartRow(set)
    if set > 16 and set < 21 then
       return startRow
    end
+   if set > 24 then
+      return startRow
+   end
    return (startRow + 4)
 end
 
+-- Maps spritesheet to set number
 function getSpriteSheetForSet(set)
    if set < 9 then 
       return SET_1_SPRITESHEET 

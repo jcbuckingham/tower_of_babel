@@ -7,6 +7,7 @@ require "objects/inventory"
 
 Game = class('Game')
 
+-- Init game
 function Game:initialize()
     local camera = camera()
     local windfieldWorld = windfield.newWorld(0, 0)
@@ -15,6 +16,7 @@ function Game:initialize()
 	local mapH = map.height * map.tileheight
     local mc = Game:initCharacter(1200, mapH*2/3, 30, 50, 100000, "Senlin")
 
+    -- Creates collision rectangles on all static items and borders
     local walls  = {}
     local wall = nil
 	if map.layers["Walls"] then
@@ -25,6 +27,7 @@ function Game:initialize()
 		end
 	end
 
+    -- Creates NPCs, sets their animations, and creates collision rectangles for each
     local npcs = {}
     local npcData = nil
     local npc = nil
@@ -54,10 +57,14 @@ function Game:initialize()
     self.timeOfDay = "day"
 end
 
+-- Inits a new character
+-- TODO: change when NPCs are decoupled from Character
 function Game:initCharacter(x, y, width, height, characterNum, name)
     return Character:new(x, y, width, height, characterNum, name)
 end
 
+-- Draws all characters in game
+-- TODO: change when NPCs are decoupled from Character
 function Game:drawCharacters()
     for i, npc in pairs(self.npcs) do
         npc.currentAnimation:draw(
@@ -85,6 +92,8 @@ function Game:drawCharacters()
     )
 end
 
+-- Update characters since last timestamp
+-- TODO: change when NPCs are decoupled from Character
 function Game:updateCharacters(dt)
     for i, npc in pairs(self.npcs) do
         npc.currentAnimation:update(dt)
@@ -93,6 +102,7 @@ function Game:updateCharacters(dt)
 	self.mc.currentAnimation:update(dt)
 end
 
+-- Updates camera based on main character's coords and map borders
 function Game:updateCamera()
     self.camera:lookAt(self.mc.x, self.mc.y)
 

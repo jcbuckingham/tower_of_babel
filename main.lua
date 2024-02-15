@@ -7,6 +7,11 @@ _G.anim8 = require "libraries/anim8"
 require "objects/game"
 require "objects/inventory"
 
+function _G:tablelength(T)
+	local count = 0
+	for _ in pairs(T) do count = count + 1 end
+	return count
+end
 
 function love.load()
 	--[[ Globals --]]
@@ -20,18 +25,22 @@ function love.load()
 	_G.game = Game:new()
 end
 
+-- Actions to take on each frame update
 function love.update(dt)
 	game:updateCharacters(dt)
 	game.windfieldWorld:update(dt)
 	game:updateCamera()
+	-- inventory:updateInventory()
 
     if string.len(text) > 768 then
     	text = ""
     end
 end
 
+-- Actions to take when drawing each frame
 function love.draw()
 	game.camera:attach()
+		-- Draw map layers in order
 		game.map:drawLayer(game.map.layers["Background"])
 		game.map:drawLayer(game.map.layers["Ground Tiles"])
 		game.map:drawLayer(game.map.layers["Under MC 1"])
@@ -40,15 +49,16 @@ function love.draw()
 		game.map:drawLayer(game.map.layers["Over MC 1"])
 		game.map:drawLayer(game.map.layers["Over MC 2"])
 
+		-- Draw day/night
 		if game.timeOfDay == "night" then
 			game.map:drawLayer(game.map.layers["Night Filter"])
 			game.map:drawLayer(game.map.layers["Night Filter 2"])
 			game.map:drawLayer(game.map.layers["Lights On"])
 		end
-		-- game.windfieldWorld:draw()
 	game.camera:detach()
 
-	if game.showInventory then
+	-- Draws inventory over map if showInventory is true
+	if inventory.showInventory then
 		game.map:drawLayer(game.map.layers["Obscure"])
 		inventory.inventoryMap:drawLayer(inventory.inventoryMap.layers["Background"])
 		inventory.inventoryMap:drawLayer(inventory.inventoryMap.layers["Tiles 1"])
@@ -62,30 +72,24 @@ function love.draw()
 		-- love.graphics.pop()
 end
 
+-- Detect macros
 function love.keypressed(key, scancode, isrepeat)
+	-- Toggle day/night
 	if key == "n" and game.timeOfDay == "day" then
 	   game.timeOfDay = "night"
 	elseif key == "n" then
 		game.timeOfDay = "day"
 	end
 
+	-- Toggle inventory
 	if key == "i" and inventory.showInventory == false then
 		inventory.showInventory = true
 	elseif key == "i" then
 		inventory.showInventory = false
 	end
 
-	if key == "a" and not inventory.items[0] then
-		inventory.addNewItem(0, 1)
-	end
-
-	if key == "o" and inventory.items[0] and inventory.items[0].count == 10 then
-		inventory.items[0].count = 0
-	elseif key == "o" then
-		if inventory.items[0] then
-			inventory.items[0].count = inventory.items[0].count + 1
-		else
-			table.insert(inventory.items, Item:new(1,1))
-		end
+	-- TEMPORARY for testing only: add test items to inventory
+	if key == "u" and not inventory.items[0] then
+		inventory:addNewItem(0, 1)
 	end
  end
