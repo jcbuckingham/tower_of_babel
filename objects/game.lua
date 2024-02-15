@@ -3,6 +3,7 @@ local sti = require "libraries/sti"
 local windfield = require "libraries/windfield"
 local camera = require "libraries/camera"
 require "objects/character"
+require "objects/npc"
 require "objects/inventory"
 
 Game = class('Game')
@@ -14,7 +15,7 @@ function Game:initialize()
     local map = sti("assets/maps/market_2.lua")
     local mapW = map.width * map.tilewidth
 	local mapH = map.height * map.tileheight
-    local mc = Game:initCharacter(1200, mapH*2/3, 30, 50, 100000, "Senlin")
+    local mc = Game:initCharacter(1200, mapH*2/3, 30, 50)
 
     -- Creates collision rectangles on all static items and borders
     local walls  = {}
@@ -34,9 +35,8 @@ function Game:initialize()
     local npcCollider = nil
     if map.layers["NPCs"] then
 		for i, obj in pairs(map.layers["NPCs"].objects) do
-
-            npcData = Character.npcData[obj.id]
-            npc = Game:initCharacter(obj.x, obj.y, 30, 50, npcData.animationSetNum, npcData.name)
+            npcData = NPC.npcData[obj.id]
+            npc = Game:initNPC(obj.x, obj.y, 30, 50, npcData.animationSetNum, npcData.name)
             npc.currentAnimationDirection = npcData.animationDirection
             npc.currentAnimation = npc:getStandAnimation()
             npc.currentAnimationType = "stand"
@@ -58,9 +58,13 @@ function Game:initialize()
 end
 
 -- Inits a new character
--- TODO: change when NPCs are decoupled from Character
-function Game:initCharacter(x, y, width, height, characterNum, name)
-    return Character:new(x, y, width, height, characterNum, name)
+function Game:initCharacter(x, y, width, height)
+    return Character:new(x, y, width, height)
+end
+
+-- Inits a new NPC
+function Game:initNPC(x, y, width, height, characterNum, name)
+    return NPC:new(x, y, width, height, characterNum, name)
 end
 
 -- Draws all characters in game
@@ -92,8 +96,7 @@ function Game:drawCharacters()
     )
 end
 
--- Update characters since last timestamp
--- TODO: change when NPCs are decoupled from Character
+-- Updates characters since last timestamp
 function Game:updateCharacters(dt)
     for i, npc in pairs(self.npcs) do
         npc.currentAnimation:update(dt)
