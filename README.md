@@ -10,7 +10,7 @@ The assets I am using in the game are purchased from or distributed for free by 
 
 ## No Distribution 
 
-I am not including a .love file here because I don't have permission from all assets artists to distribute a game with their materials, or from Josiah Bancroft to distribute a game based on his novels.
+I am not including a .love file here because I don't have permission from all assets artists to distribute a game with their materials.  I also do not have permission from Josiah Bancroft to use his story and characters, although there is no reference to the books in the codebase beyond the name "Tom" and the title.  I will need to make the repo private when I start drawing actual content from the story, but for now it's just creativity inspiration.
 
 ## Libraries
 

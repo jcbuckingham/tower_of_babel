@@ -1,6 +1,6 @@
 local class = require 'libraries/middleclass'
 MC_SPRITESHEET = "assets/sprites/senlin.png"
-MC_NAME = "Senlin"
+MC_NAME = "Tom"
 
 Character = class('Character')
 
